@@ -19,9 +19,22 @@ from fastapi.responses import HTMLResponse
 # template
 from fastapi.templating import Jinja2Templates
 
+# Image upload
+from fastapi import File, UploadFile
+import secrets # This is a inbuilt library that will be use to generate hex token to store image
+from fastapi.staticfiles import StaticFiles
+from PIL import Image
+
+
 app = FastAPI()
 
+#  Staticfile setup config
+app.mount("/static", StaticFiles(directory='static'), name='static')
+
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl ='/token') # This will redirect to a route call token fot verification
+
+# 
 
 @app.post('/token')
 async def generate_token(request_form: OAuth2PasswordRequestForm = Depends()):
@@ -116,6 +129,49 @@ async def email_verification(request: Request, token: str):
 async def index():
     return {"message": "Hello World"}
 
+
+# Image Uploading
+@app.post('/uploadfile/profile')
+async def create_upload_file(file: UploadFile = File(...), user: user_pydantic = Depends(get_current_user)):
+    FILEPATH = "./static/image/"
+    filename = file.filename
+
+    # We would use the secret in other to replace the initial image name to a secret hex so we don't get conflict when to image has the same name
+    extension = filename.split(".")[1]
+
+    if extension not in ['png', 'jpg', 'jpeg']:
+        return {'status': "error", 'detail': "File extension not allowed"}
+    
+    token_name = secrets.token_hex(10) + '.' + extension
+    generated_name = FILEPATH + token_name
+    file_content = await file.read()
+
+    with open(generated_name, 'wb') as file:
+        file.write(file_content)
+
+    # Pillow
+    # Scaling image we dont want to store high resolution image in the backend
+    img = Image.open(generated_name)
+    img = img.resize(size=(200, 200))
+    img.save(generated_name)
+
+    file.close()
+
+    business = await Business.get(owner= user)
+    owner = await business.owner
+
+    if owner == user:
+        business.logo = token_name
+        await business.save()
+        return {
+            'status': "ok"
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated to perform this account",
+            headers={'www.Authentication': "Bearer"}
+        )
 
 register_tortoise(
     app,

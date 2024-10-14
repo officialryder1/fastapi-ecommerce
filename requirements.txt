@@ -1,3 +1,4 @@
+aiofiles==24.1.0
 aiosmtplib==2.0.2
 aiosqlite==0.17.0
 annotated-types==0.7.0
@@ -27,6 +28,7 @@ markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 mdurl==0.1.2
 passlib==1.7.4
+pillow==10.4.0
 pydantic==2.9.2
 pydantic-settings==2.5.2
 pydantic_core==2.23.4
