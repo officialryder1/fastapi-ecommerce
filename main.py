@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException, status, Depends
 from tortoise.contrib.fastapi import register_tortoise
 from models import *  # noqa: F403
+from crud import *
 
 # Authentication
 from authentication import *  # noqa: F403
 from fastapi.security import (OAuth2PasswordBearer, OAuth2PasswordRequestForm)
-
 
 # Signals
 from tortoise.signals import post_save
@@ -222,8 +222,13 @@ async def create_upload_file(id: int, file: UploadFile = File(...), user: user_p
             'filename': file_url
         }
 
+@app.get('/products')
+async def get_all_product():
+    return await get_product()
 
-
+@app.post('/product')
+async def Upload_product(product: product_pydanticIn, user: user_pydantic = Depends(get_current_user)): # type: ignore
+    return await create_product(product, user)
 
 register_tortoise(
     app,
