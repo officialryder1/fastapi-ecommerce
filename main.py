@@ -230,6 +230,22 @@ async def get_all_product():
 async def Upload_product(product: product_pydanticIn, user: user_pydantic = Depends(get_current_user)): # type: ignore
     return await create_product(product, user)
 
+@app.delete('/product/{product_id}')
+async def remove_product(product_id: int, user: user_pydantic = Depends(get_current_user)): # type: ignore
+
+    product = await Product.filter(id=product_id).first()
+    if product:
+        return await delete_product(product_id, user)
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product with ID not found")
+
+@app.put('/product/{product_id}')
+async def update_prodduct_details(product_id: int, product: product_pydanticIn, user: user_pydantic = Depends(get_current_user)): # type: ignore
+    return await update_product(product_id, product, user)
+
+
+
+
 register_tortoise(
     app,
     db_url="sqlite://database.sqlite3",
