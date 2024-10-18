@@ -52,7 +52,7 @@ async def token_generator(username: str, password: str):
         raise HTTPException(status_code=401, detail="Invalid username or password", headers={'www.Authentication': "Bearer"})
     
     token_data = {
-        'id': user.id,
+        'user_id': user.id,
         'username': user.username
     }
 

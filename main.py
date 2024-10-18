@@ -16,6 +16,9 @@ from emails import send_mail
 # Response classes
 from fastapi.responses import HTMLResponse
 
+# Cors middleware
+from fastapi.middleware.cors import CORSMiddleware
+
 # template
 from fastapi.templating import Jinja2Templates
 
@@ -31,6 +34,20 @@ app = FastAPI()
 #  Staticfile setup config
 app.mount("/static", StaticFiles(directory='static'), name='static')
 
+# Add session middleware to handle session
+
+
+# List of allowed origins
+origins = ["http://localhost:5173"] #List allowed origin during production
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins= origins,
+    allow_credentials = True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl ='/token') # This will redirect to a route call token fot verification
 
@@ -64,13 +81,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     
     return await user
     
-
-@app.post('/user_me')
-async def user_login(user: user_pydanticIn = Depends(get_current_user)): # type: ignore
-    business = await Business.get(owner = user)
+    
+@app.get('/user_me')
+async def user_login(user_id: int): # type: ignore
+    user = await User.get(id=user_id)
+    
     return {
         'status': 'ok',
         'data': {
+            'user_id': user.id,
             'username': user.username,
             'email': user.email,
             'is_verify': user.is_verified,
@@ -98,7 +117,7 @@ async def create_business(
 
 
 @app.post('/registration')
-async def user_registration(user: user_pydanticIn):
+async def user_registration(user: user_pydanticIn): # type: ignore
     user_info = user.dict(exclude_unset=True)
     user_info["password"] = get_hashed_password(user_info['password'])
     user_obj = await User.create(**user_info)
@@ -107,6 +126,18 @@ async def user_registration(user: user_pydanticIn):
         'status': "ok",
         'data': f"Hello {new_user.username}, thanks for choosing our services. Please check your email inbox and click on the link to confirm your registration"
     }
+
+@app.get('/resend_mail')
+async def resend_mail(user_id: int):
+    user = await User.get(id=user_id)
+    print(user.email)
+    await send_mail([user.email], user)
+
+    return {
+        'status': "ok",
+        'data': f"Hello {user.username}, thanks for choosing our services. Please check your email inbox and click on the link to confirm your registration"
+    }
+
 
 templates = Jinja2Templates(directory='templates')
 @app.get("/verification", response_class=HTMLResponse)

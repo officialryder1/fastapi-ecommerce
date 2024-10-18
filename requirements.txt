@@ -3,6 +3,7 @@ aiosmtplib==2.0.2
 aiosqlite==0.17.0
 annotated-types==0.7.0
 anyio==4.6.0
+Authlib==0.5.1
 bcrypt==4.2.0
 blinker==1.8.2
 certifi==2024.8.30
