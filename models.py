@@ -34,8 +34,28 @@ class Product(Model):
     business = fields.ForeignKeyField("models.Business", related_name="products")
 
 
+class Order(Model):
+    id = fields.IntField(pk=True, index=True)
+    buyer = fields.ForeignKeyField('models.User', related_name="buyer")
+    owner = fields.ForeignKeyField('models.Business', related_name='product_owner')
+    product = fields.ForeignKeyField('models.Product', related_name='order_product')
+    quantity = fields.IntField(default=1)
+    amount_paid = fields.DecimalField(max_digits=12, decimal_places=2)
+    date_order = fields
+
+class User_Detail(Model):
+    id = fields.IntField(pk=True, index=True)
+    user = fields.ForeignKeyField('models.User', related_name="user_detail")
+    email = fields.CharField(max_length=200, null=False, unique=True)
+    phone = fields.CharField(max_length=12, null=False)
+    state = fields.CharField(max_length=50, null=False)
+    city = fields.CharField(max_length=50, null=False)
+    address = fields.CharField(max_length=50, null=False)
+
+
+
 # This a way of creating a pydantic models for each models table
-# WE use In and Out for Input and Output Purpose in fastapi
+# WE use In and Out for Input and767 Output Purpose in fastapi
 user_pydantic = pydantic_model_creator(User, name = "User", exclude=("is_verified"))
 user_pydanticIn = pydantic_model_creator(User, name="UserIn", exclude_readonly=True, exclude=("is_verified", "joined_date"))
 user_pydanticOut = pydantic_model_creator(User, name="UserOut", exclude= ("password",))
@@ -45,3 +65,9 @@ business_pydanticIn = pydantic_model_creator(Business, name= 'BusinessIn', exclu
 
 product_pydantic = pydantic_model_creator(Product, name="Product")
 product_pydanticIn = pydantic_model_creator(Product, name="ProductIn", exclude=("percentage_discount", "id"))
+
+order_pydantic = pydantic_model_creator(Order, name="Order")
+order_pydanticIn = pydantic_model_creator(Order, name="OrderIn", exclude_readonly=True)
+
+user_detail_pydantic = pydantic_model_creator(User_Detail, name="User_Detail")
+user_detailIn_pydantic = pydantic_model_creator(User_Detail, name="user_DetailIn", exclude_readonly=True)
